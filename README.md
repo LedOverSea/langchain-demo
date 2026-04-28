@@ -55,6 +55,8 @@ uv add python-dotenv
 
 然后在项目的.env文件夹下填写获得的api key.
 
+注意把.env文件添加到gitignore中, 避免提交到版本控制.
+
 ```bash
 ZAI_API_KEY={your api key}
 ```
@@ -63,6 +65,8 @@ ZAI_API_KEY={your api key}
 
 ```python
 from dotenv import load_dotenv  # 关键：加载.env
+from langchain_openai import ChatOpenAI
+import os
 
 # 加载环境变量
 load_dotenv()
@@ -537,8 +541,45 @@ for chunk in model_with_tools.stream(
 - **内容** - 表示消息的实际内容（例如文本、图像、音频、文档等）
 - **元数据** - 可选字段，例如响应信息、消息 ID 和令牌使用情况
 
+
+
+调用模型时传入消息
+
+```python
+model.invoke(messages)
+```
+
+
+
 ## 基本用法{#usage}
 
-消息可以是以下类型: 字符串/列表/字典
+消息可以是以下类型: 字符串(使用的是human message)/列表/字典
 
-所以
+## 消息类型
+
+- [系统消息(system message)](https://langchain-doc.cn/v1/python/langchain/messages.html#系统消息) - 告诉模型如何行为并为交互提供上下文
+- [人类消息(human message)](https://langchain-doc.cn/v1/python/langchain/messages.html#人类消息) - 表示用户输入和与模型的交互
+- [AI 消息(ai message)](https://langchain-doc.cn/v1/python/langchain/messages.html#ai-消息) - 模型生成的响应，包括文本内容、工具调用和元数据
+- [工具消息(tool message)](https://langchain-doc.cn/v1/python/langchain/messages.html#工具消息) - 表示[工具调用](https://langchain-doc.cn/v1/python/langchain/models#tool-calling)的输出
+
+前两个是人为输入, 后两个可以是模型的返回结果, 也可以是人为输入
+
+## 消息内容
+
+您可以将消息的内容视为发送给模型的数据负载。消息具有一个松散类型的 `content` 属性，支持字符串和未类型对象列表（例如字典）。这允许在 LangChain 聊天模型中直接支持提供商原生结构，例如[多模态](https://langchain-doc.cn/v1/python/langchain/messages.html#多模态)内容和其他数据。
+
+LangChain 另外为文本、推理、引用、多模态数据、服务器端工具调用和其他消息内容提供了专用内容类型。请参阅下面的[标准内容块](https://langchain-doc.cn/v1/python/langchain/messages.html#标准内容块)。
+
+LangChain 聊天模型接受 `content` 属性中的消息内容，可以包含：
+
+1. 一个字符串
+2. 提供商原生格式的内容块列表
+3. [LangChain 的标准内容块](https://langchain-doc.cn/v1/python/langchain/messages.html#标准内容块)列表
+
+# 工具{#Tools}
+
+许多 AI 应用程序通过自然语言与用户交互。然而，某些用例要求模型使用结构化输入直接与外部系统（例如 **API**、**数据库** 或 **文件系统**）对接。
+
+**工具** 是 **[代理（agents）](https://langchain-doc.cn/v1/python/langchain/agents)** 调用来执行操作的组件。它们通过允许模型通过定义明确的输入和输出与世界交互来扩展模型的功能。工具封装了一个可调用的函数及其输入架构（schema）。这些可以传递给兼容的 **[聊天模型（chat models）](https://langchain-doc.cn/v1/python/langchain/models)**，让模型决定是否以及使用什么参数来调用工具。在这些场景中，**工具调用** 使模型能够生成符合指定输入架构的请求。
+
+## 创建工具
