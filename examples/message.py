@@ -22,8 +22,8 @@ def main():
         )
     
     # 查看ai message的元数据, 包括token使用情况
-    # response = model.invoke(messages)
-    # print(response.usage_metadata)
+    response = model.invoke(messages)
+    print(response.usage_metadata)
 
     # 流式传输,ai message chunk可以组合成完整的ai message
     # chunks = []
